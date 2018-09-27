@@ -47,6 +47,80 @@ public final class WebServer {
             System.out.println();
             System.out.println(requestLine);
 
+            // Initializes header line
+            String headerLine = null;
+
+            // Loops through headerline until end of file. Loop terminates when the headerline reaches the empty line at file end.
+            while((headerLine = br.readLine()).length() != 0){
+                System.out.println(headerLine);
+            }
+
+            StringTokenizer tokens = new StringTokenizer(requestLine);
+            tokens.nextToken();
+            String fileName = tokens.nextToken();
+            fileName = "." + fileName;
+
+            FileInputStream fis = null;
+            boolean fileExists = true;
+
+            try{
+                fis = new FileInputStream(fileName);
+            }catch (FileNotFoundException e){
+                e.printStackTrace();
+                fileExists = false;
+            }
+
+            String statusLine = null;
+            String contentTypeLine = null;
+            String entityBody = null;
+
+            if (fileExists){
+                statusLine = "100";
+                contentTypeLine = "Content Type: "+ contentType(contentTypeLine);
+            }else{
+                statusLine = "404 Not Found";
+                entityBody = "404.html";
+            }
+            // Provides a terminator called end, which is a blank line
+            String end = " ";
+
+            // Converts the content type and status line to byte arrays and writes to output stream
+            os.write(statusLine.getBytes());
+            os.write(contentTypeLine.getBytes());
+            os.write(end.getBytes());
+
+            if(fileExists){
+                sendBytes(fis, os);
+                fis.close();
+            }else{
+                String errorMessage = "404.html";
+                os.write(errorMessage.getBytes());
+            }
+            // Closes all of our streams, readers, and socket.
+            os.close();
+            br.close();
+            socket.close();
+        }
+
+        private String contentType(String fileName) {
+
+            if (fileName.endsWith(".htm") || fileName.endsWith(".html")){
+
+            }
+            return null;
+        }
+
+        private static void sendBytes(FileInputStream fis, OutputStream os) throws Exception{
+
+            // Creates a 1KB window-size
+            byte[] buffer = new byte[1024];
+
+            int bytes = 0;
+
+            // Copy the requested file in to the output stream
+            while((bytes = fis.read(buffer)) != -1){
+                os.write(buffer, 0, bytes);
+            }
         }
     }
 
