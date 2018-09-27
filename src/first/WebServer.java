@@ -104,10 +104,28 @@ public final class WebServer {
 
         private String contentType(String fileName) {
 
-            if (fileName.endsWith(".htm") || fileName.endsWith(".html")){
+            String content = null;
 
+            if (fileName.endsWith(".htm") || fileName.endsWith(".html")){
+                content = "text/html";
             }
-            return null;
+            if (fileName.endsWith(".txt")){
+                content = "text/plain";
+            }
+
+            if (fileName.endsWith(".gif")){
+                content = "image/gif";
+            }
+
+            if (fileName.endsWith(".png")){
+                content = "text/plain";
+            }
+            if (fileName.endsWith(".jpeg") || fileName.endsWith(".jpg")){
+                content = "image/jpeg";
+            }
+
+            return content;
+
         }
 
         private static void sendBytes(FileInputStream fis, OutputStream os) throws Exception{
