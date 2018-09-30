@@ -10,9 +10,6 @@ https://medium.com/@ssaurel/create-a-simple-http-web-server-in-java-3fc12b29d5fd
 
 public final class WebServer {
 
-    Boolean infinite = true;
-
-
     // Will be passed to the Thread's constructor
     static final class HttpRequest implements Runnable {
 
@@ -25,6 +22,7 @@ public final class WebServer {
             this.socket = socket;
         }
 
+        // Part of the Runnable interface
         @Override
         public void run() {
 
@@ -142,9 +140,9 @@ public final class WebServer {
         }
     }
 
-
     public static void main(String[] args) throws Exception {
         try{
+            // Test port
             int port = 6789;
 
             ServerSocket webServer;
@@ -155,6 +153,7 @@ public final class WebServer {
                 HttpRequest request = new HttpRequest(connectedSocket);
 
                 Thread thread = new Thread(request);
+                // Indirectly calls the run() of the HttpRequest object request in a new thread.
                 thread.start();
             }
 
