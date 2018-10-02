@@ -10,8 +10,12 @@ https://medium.com/@ssaurel/create-a-simple-http-web-server-in-java-3fc12b29d5fd
 
 public final class WebServer {
 
+    static final File WEB_ROOT= new File(".");
+
     // Will be passed to the Thread's constructor
     static final class HttpRequest implements Runnable {
+
+        String content;
 
         // CRLF is the carriage return and line feed mandated by HTTP
         final static String CRLF = "\r\n";
@@ -34,15 +38,46 @@ public final class WebServer {
 
         }
 
+        private String contentType(String fileName) {
+
+            if (fileName.endsWith(".htm") || fileName.endsWith(".html")){
+                content = "text/html";
+                return content;
+            }
+            else if (fileName.endsWith(".txt")){
+                content = "text/plain";
+                return content;
+            }
+
+            else if (fileName.endsWith(".gif")){
+                content = "image/gif";
+                return content;
+            }
+
+            else if (fileName.endsWith(".png")){
+                content = "image/png";
+                return content;
+            }
+            else if (fileName.endsWith(".jpeg") || fileName.endsWith(".jpg")){
+                content = "image/jpeg";
+                return content;
+            }
+
+            return content;
+
+        }
+
         private void processRequest() throws Exception{
 
             InputStream is = socket.getInputStream();
             OutputStream os = socket.getOutputStream();
 
+            DataOutputStream dos = new DataOutputStream(os);
+
             BufferedReader br = new BufferedReader(new InputStreamReader(is));
 
             String requestLine = br.readLine();
-            System.out.println();
+            System.out.println(CRLF);
             System.out.println(requestLine);
 
             // Initializes header line
@@ -56,7 +91,7 @@ public final class WebServer {
             StringTokenizer tokens = new StringTokenizer(requestLine);
             tokens.nextToken();
             String fileName = tokens.nextToken();
-            fileName = "." + fileName;
+            fileName = "/Users/michael/Desktop/NetworkingLabs/src/first" + fileName;
 
             FileInputStream fis = null;
             boolean fileExists = true;
@@ -73,57 +108,36 @@ public final class WebServer {
             String entityBody = null;
 
             if (fileExists){
-                statusLine = "100";
-                contentTypeLine = "Content Type: "+ contentType(contentTypeLine);
+                statusLine = "HTTP/1.1 200 OK";
+                contentTypeLine = "Content-Type: " + contentType(fileName);
+                entityBody = fis.toString();
+                System.out.println(contentTypeLine);
             }else{
                 statusLine = "404 Not Found";
+                contentTypeLine = null;
                 entityBody = "404.html";
             }
             // Provides a terminator called end, which is a blank line
             String end = " ";
 
             // Converts the content type and status line to byte arrays and writes to output stream
-            os.write(statusLine.getBytes());
-            os.write(contentTypeLine.getBytes());
-            os.write(end.getBytes());
+            dos.writeBytes(statusLine);
+            dos.writeBytes(contentTypeLine);
+            dos.writeBytes(entityBody);
+            dos.writeBytes(end);
 
             if(fileExists){
-                sendBytes(fis, os);
+                sendBytes(fis, dos);
                 fis.close();
             }else{
-                String errorMessage = "404.html";
-                os.write(errorMessage.getBytes());
+                String errorMessage = "File Not Found";
+                dos.writeBytes(errorMessage);
             }
             // Closes all of our streams, readers, and socket.
             os.close();
+            dos.close();
             br.close();
             socket.close();
-        }
-
-        private String contentType(String fileName) {
-
-            String content = null;
-
-            if (fileName.endsWith(".htm") || fileName.endsWith(".html")){
-                content = "text/html";
-            }
-            if (fileName.endsWith(".txt")){
-                content = "text/plain";
-            }
-
-            if (fileName.endsWith(".gif")){
-                content = "image/gif";
-            }
-
-            if (fileName.endsWith(".png")){
-                content = "text/plain";
-            }
-            if (fileName.endsWith(".jpeg") || fileName.endsWith(".jpg")){
-                content = "image/jpeg";
-            }
-
-            return content;
-
         }
 
         private static void sendBytes(FileInputStream fis, OutputStream os) throws Exception{
@@ -143,13 +157,12 @@ public final class WebServer {
     public static void main(String[] args) throws Exception {
         try{
             // Test port
-            int port = 6789;
+            int port = 8080;
 
-            ServerSocket webServer;
-            webServer = new ServerSocket(port);
+            ServerSocket webServer = new ServerSocket(port);
+
             while (true) {
-                Socket connectedSocket = null;
-                connectedSocket = webServer.accept();
+                Socket connectedSocket = webServer.accept();
                 HttpRequest request = new HttpRequest(connectedSocket);
 
                 Thread thread = new Thread(request);
