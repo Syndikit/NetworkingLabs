@@ -91,7 +91,7 @@ public final class WebServer {
             StringTokenizer tokens = new StringTokenizer(requestLine);
             tokens.nextToken();
             String fileName = tokens.nextToken();
-            fileName = "/Users/michael/Desktop/NetworkingLabs/src/first" + fileName;
+            fileName = "." + fileName;
 
             FileInputStream fis = null;
             boolean fileExists = true;
@@ -157,7 +157,7 @@ public final class WebServer {
     public static void main(String[] args) throws Exception {
         try{
             // Test port
-            int port = 8080;
+            int port = 6789;
 
             ServerSocket webServer = new ServerSocket(port);
 
