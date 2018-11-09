@@ -1,4 +1,5 @@
 package second;
+
 import java.io.*;
 import java.net.*;   
 import java.util.*;   
@@ -13,52 +14,72 @@ public class PingClient {
     long minrtt = 9999;
     int drops = 0;
     int retPacket;
-    
-    if (?) {  // check if number of arguments are correct
+    final String CRLF = "\r\n";
+    long[] timeArray = new long[10];
+
+    if (args.length == 2) {  // check if number of arguments are correct
       System.out.println("Required arguments: host port");   
       return;   
     }   
-    String server = ?;   // Read first argument from user 
-    String serport = ? // Read second argument from user
-    int serverPort = Integer.parseInt(serport);   
-    
-    DatagramSocket socket = ?; // Create new datagram socket
-    ?; // Set socket timeout value. Read API for DatagramSocket to do this
+    String server = args[0].toString();   // Read first argument from user args[0].toString();
+    String serport = args[1].toString(); // Read second argument from user args[1].toString()
+    int serverPort = Integer.parseInt(serport);
 
-    InetAddress serverAddress = ?; //Convert server to InetAddress format; Check InetAddress API for this
-    byte[] sendData = new byte[1024];   
+    InetAddress serverAddress = InetAddress.getByName(server); //Convert server to InetAddress format; Check InetAddress API for this
+
+    DatagramSocket socket = new DatagramSocket();
+    socket.connect(serverAddress,serverPort);// Create new datagram socket
+
+    byte[] sendData = new byte[1024];
     byte[] receiveData = new byte[1024];   
     
-    for(int i = 0; i < 10; i++) {  
+    for(int i = 0; i < 10; i++) {
       Long time = new Long(System.currentTimeMillis());
-      String payload = ?; // Construct data payload for PING as per the instructions
-      sendData = ?; // Convert payload into bytes
-      DatagramPacket packet = new DatagramPacket(?);    // Create new datagram packet
-      ?; // send packet
-      
-      DatagramPacket reply = ?; // Create datagram packet for reply
-      
+      // Construct data payload for PING as per the instructions
+      String payload = "PING "+ i + " " + time + CRLF;
+      // Convert payload into bytes
+      sendData = payload.getBytes();
+      // Create new datagram packet
+      DatagramPacket packet = new DatagramPacket(sendData, sendData.length, serverAddress, serverPort);
+       // send packet
+      socket.send(packet);
+
       try {
-        ?; wait for incoming packet reply
+        socket.setSoTimeout(1000);
+        // Create datagram packet for reply
+        DatagramPacket reply = new DatagramPacket(receiveData, receiveData.length, serverAddress, serverPort);
+        socket.receive(reply);
+        Long time2 = new Long(System.currentTimeMillis());
+
+        //?; wait for incoming packet reply
         byte[] buf = reply.getData();          
         ByteArrayInputStream bais = new ByteArrayInputStream(buf);   
         InputStreamReader isr = new InputStreamReader(bais);   
         BufferedReader br = new BufferedReader(isr);
-        String line = br.readLine();   
+        String line = br.readLine();
+        System.out.println(line);
         
 	  // Parse incoming string "line"
 
 	  // extract packet sequence number into the variable retPacket
-        retPacket = ?
+        retPacket = Integer.parseInt(String.valueOf(line.charAt(5)));
         
-        if (retPacket != i) {   
+        if (retPacket != i) {
           System.out.print("Received out of order packet");
           System.out.println();
         }
 	  else {
-	    System.out.println("Received from " + request.getAddress().getHostAddress() + " ," + new String(line)); 
+	    System.out.println("Received from " + reply.getAddress().getHostAddress() + " ," + new String(line));
           System.out.println();
-          long rtt = ?;  // calculate roundtrip time
+          long rtt = time2-time;
+          timeArray[i] = rtt;
+          Arrays.sort(timeArray);
+          maxrtt = timeArray[9];
+          minrtt = timeArray[0];
+          totalrtt += rtt; // calculate roundtrip time
+          System.out.println("Total RTT: "+totalrtt + "ms");
+          System.out.println("Max RTT: "+maxrtt + "ms");
+          System.out.println("Min RTT: " + minrtt+ "ms");
           // calculate total, max and min rtt
         }        
       } 
@@ -67,7 +88,7 @@ public class PingClient {
         drops++;
       }   
     } 
-    long avgrtt = ?; calculate average rtt
+    long avgrtt = totalrtt/10; //calculate average rtt
     
     // print and store average, max, min rtt and drops
   }    

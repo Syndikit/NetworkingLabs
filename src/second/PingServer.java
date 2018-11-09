@@ -15,11 +15,11 @@ public class PingServer
    public static void main(String[] args) throws Exception
    {
       // Get command line argument.
-      if (args.length != 1) {
+      if (args.length == 1) {
          System.out.println("Required arguments: port");
          return;
       }
-      int port = Integer.parseInt(args[0]);
+      int port = 1999; //Integer.parseInt(args[0])
 
       // Create random number generator for use in simulating
       // packet loss and network delay.
